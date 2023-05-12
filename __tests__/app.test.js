@@ -104,3 +104,30 @@ describe("GET articles", () => {
       });
   });
 });
+
+// describe("GET comments", () => {
+//   test("200: get comments by article_id", () => {
+//     return request(app)
+//       .get("/api/articles/1/comments")
+//       .expect(400)
+//       .then(({ body }) => {
+//         expect(Array.isArray(body.comments)).toBe(true);
+//         expect(body.comments.length).toBe(11);
+//         expect(body.total_count).toBe(11);
+//         expect(body.comments).toBeSortedBy("created_at", { descending: true });
+
+//         body.comments.forEach((comment) => {
+//           expect(Object.keys(comment).length).toBe(5);
+//           expect(comment).toEqual(
+//             expect.objectContaining({
+//               comment_id: expect.any(Number),
+//               author: expect.any(String),
+//               body: expect.any(String),
+//               created_at: expect.any(String),
+//               votes: expect.any(Number),
+//             })
+//           );
+//         });
+//       });
+//   });
+// });
