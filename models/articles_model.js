@@ -19,6 +19,7 @@ exports.readArticleById = (article_id) => {
           msg: "article_id is not found",
         });
       } else {
+        console.log(result.rows[0]);
         return result.rows[0];
       }
     });
@@ -249,5 +250,52 @@ exports.readCommentsByArticleId = (article_id, limit = 999, p) => {
             return { rows, total_count };
           });
       }
+    });
+};
+
+exports.addCommentByArticleId = (article_id, reqBody) => {
+  const { body, username } = reqBody;
+
+  if (body === undefined) {
+    return Promise.reject({ status: 400, msg: "Incomplete comment" });
+  }
+
+  if (typeof body !== "string") {
+    return Promise.reject({ status: 400, msg: "Wrong data type" });
+  }
+
+  return db
+    .query(`SELECT * FROM articles WHERE article_id=$1;`, [article_id])
+    .then(({ rowCount }) => {
+      if (rowCount === 0) {
+        return Promise.reject({
+          status: 404,
+          msg: "article_id does not exist",
+        });
+      }
+      return Promise.all([
+        db.query("SELECT * FROM users WHERE username=$1", [username]),
+      ]);
+    })
+    .then(([{ rowCount }]) => {
+      if (rowCount === 0) {
+        return Promise.reject({
+          status: 400,
+          msg: "username does not exist",
+        });
+      }
+      return db.query(
+        `
+         INSERT INTO comments
+         (article_id, body, author)
+         VALUES
+         ($1, $2, $3)
+         RETURNING *;
+         `,
+        [article_id, body, username]
+      );
+    })
+    .then(({ rows }) => {
+      return rows[0];
     });
 };
