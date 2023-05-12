@@ -1,7 +1,6 @@
 const express = require("express");
 const app = express();
 const apiRouter = require("./routers/api_router");
-const PORT = process.env.PORT || 9090;
 
 app.use(express.json());
 
@@ -27,9 +26,5 @@ app.use((err, req, res, next) => {
   console.log(err);
   res.status(500).send({ msg: "Internal Server Error" });
 });
-
-// app.listen(PORT, () => {
-//   console.log(`Listening on port ${PORT}.`);
-// });
 
 module.exports = app;

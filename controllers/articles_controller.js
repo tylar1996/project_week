@@ -1,4 +1,8 @@
-const { readArticleById, readArticles } = require("../models/articles_model");
+const {
+  readArticleById,
+  readArticles,
+  readCommentsByArticleId,
+} = require("../models/articles_model");
 
 exports.getArticlesById = (req, res, next) => {
   const { article_id } = req.params;
@@ -16,6 +20,18 @@ exports.getArticles = (req, res, next) => {
       res
         .status(200)
         .send({ articles: articles.rows, total_count: articles.total_count });
+    })
+    .catch(next);
+};
+
+exports.getCommentsByArticleId = (req, res, next) => {
+  const { article_id } = req.params;
+  const { limit, p } = req.query;
+  readCommentsByArticleId(article_id, limit, p)
+    .then((comments) => {
+      res
+        .status(200)
+        .send({ comments: comments.rows, total_count: comments.total_count });
     })
     .catch(next);
 };
