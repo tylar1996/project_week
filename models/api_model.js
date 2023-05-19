@@ -2,10 +2,7 @@ const fs = require("fs/promises");
 
 exports.readApi = () => {
   return fs
-    .readFile("./endpoints.json")
-    .then((file) => {
-      return JSON.parse(file);
-    })
+    .readFile(`${__dirname}/../endpoints.json`, `utf-8`)
     .then((result) => {
       return result;
     });
