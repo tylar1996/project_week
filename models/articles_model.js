@@ -48,7 +48,6 @@ ORDER BY created_at DESC`,
         });
     });
 };
-
 exports.addCommentByArticleId = (article_id, commentObj) => {
   const { username, body } = commentObj;
 

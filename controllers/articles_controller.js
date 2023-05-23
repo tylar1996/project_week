@@ -35,13 +35,17 @@ exports.getCommentsByArticleId = (req, res, next) => {
 };
 
 exports.postCommentByArticleId = (req, res, next) => {
-  const { article_id } = req.params;
-  const body = req.body;
+  article_id = req.params.article_id;
+  body = req.body;
   addCommentByArticleId(article_id, body)
     .then((comment) => {
-      res.status(201).send({ comment });
+      res.status(201).send({
+        comment: comment,
+      });
     })
-    .catch(next);
+    .catch((err) => {
+      next(err);
+    });
 };
 
 exports.patchArticleById = (req, res, next) => {
