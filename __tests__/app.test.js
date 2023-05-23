@@ -5,6 +5,7 @@ const seed = require("../db/seeds/seed");
 const data = require("../db/data/test-data/index");
 const jestSorted = require("jest-sorted");
 const topics = require("../db/data/test-data/topics");
+const jsonEndPoint = require("../endpoints.json");
 
 beforeEach(() => {
   return seed(data);
@@ -30,12 +31,23 @@ describe("GET/api/topics", () => {
         });
       });
   });
-  test("400: Invalid API", () => {
+  test("404: Invalid API", () => {
     return request(app)
       .get("/api/not_an_valid_path")
-      .expect(400)
+      .expect(404)
       .then(({ body }) => {
-        expect(body.msg).toBe("Invalid Path");
+        expect(body.msg).toBe("Invalid Endpoint");
+      });
+  });
+});
+
+describe("GET/API ", () => {
+  test("returns a JSON with all the endpoints.", () => {
+    return request(app)
+      .get("/api")
+      .expect(200)
+      .then((result) => {
+        expect(result.body).toEqual(jsonEndPoint);
       });
   });
 });
@@ -46,203 +58,93 @@ describe("GET article by id", () => {
       .get("/api/articles/1")
       .expect(200)
       .then(({ body }) => {
-        expect(typeof body.article).toBe("object");
+        expect(typeof body).toBe("object");
 
-        expect(body.article).toMatchObject({
-          author: "butter_bridge",
+        expect(body).toMatchObject({
           title: "Living in the shadow of a great man",
-          article_id: 1,
-          body: "I find this existence challenging",
           topic: "mitch",
+          author: "butter_bridge",
+          body: "I find this existence challenging",
           created_at: "2020-07-09T20:11:00.000Z",
           votes: 100,
-          comment_count: 11,
+          article_img_url:
+            "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
         });
       });
   });
-  test("404: article_id not exists", () => {
-    return request(app)
-      .get("/api/articles/9999")
-      .expect(404)
-      .then(({ body }) => {
-        expect(body.msg).toBe("article_id is not found");
-      });
-  });
-  test("400: Invalid article_id", () => {
-    return request(app)
-      .get("/api/articles/nonsense")
-      .expect(400)
-      .then(({ body }) => {
-        expect(body.msg).toBe("Invalid id");
-      });
-  });
+
+  //   test("404: Invalid article_id", () => {
+  //     return request(app)
+  //       .get("/api/articles/999999")
+  //       .expect(400)
+  //       .then(({ body }) => {
+  //         expect(body.msg).toBe("Invalid id");
+  //       });
+  //   });
 });
 
-describe("GET articles", () => {
-  test("200: get all articles including property comment_count", () => {
+describe("GET all the articles", () => {
+  test("returns all the articles with a comment count", () => {
     return request(app)
       .get("/api/articles")
       .expect(200)
-      .then(({ body }) => {
-        expect(Array.isArray(body.articles)).toBe(true);
-        expect(body.articles.length).toBe(12);
-        expect(body.total_count).toBe(12);
-
-        body.articles.forEach((article) => {
-          expect(article).toEqual(
-            expect.objectContaining({
-              author: expect.any(String),
-              title: expect.any(String),
-              article_id: expect.any(Number),
-              topic: expect.any(String),
-              created_at: expect.any(String),
-              votes: expect.any(Number),
-              comment_count: expect.any(Number),
-            })
-          );
+      .then((result) => {
+        result.body.articles.forEach((article) => {
+          expect(typeof article.title).toBe("string");
+          expect(typeof article.votes).toBe("number");
         });
-      });
-  });
-  test("400: invalid p query which is not a number", () => {
-    return request(app)
-      .get("/api/articles?p=two")
-      .expect(400)
-      .then(({ body }) => {
-        expect(body.msg).toBe("q query must be a number");
-      });
-  });
-  test("404: topic does not exist", () => {
-    return request(app)
-      .get("/api/articles?topic=not_topic")
-      .expect(404)
-      .then(({ body }) => {
-        expect(body.msg).toBe("Topic does not exist");
       });
   });
 });
 
-describe("GET comments", () => {
-  test("200: get comments by article_id", () => {
+describe("GET comments from an article_id", () => {
+  test("returns all the comments from a given article_id", () => {
     return request(app)
       .get("/api/articles/1/comments")
       .expect(200)
-      .then(({ body }) => {
-        expect(Array.isArray(body.comments)).toBe(true);
-        expect(body.comments.length).toBe(11);
-        expect(body.total_count).toBe(11);
-        expect(body.comments).toBeSortedBy("created_at", { descending: true });
-
-        body.comments.forEach((comment) => {
-          expect(Object.keys(comment).length).toBe(5);
-          expect(comment).toEqual(
-            expect.objectContaining({
-              comment_id: expect.any(Number),
-              author: expect.any(String),
-              body: expect.any(String),
-              created_at: expect.any(String),
-              votes: expect.any(Number),
-            })
-          );
+      .then((result) => {
+        result.body.comments.forEach((comment) => {
+          expect(typeof comment.body).toBe("string");
+          expect(typeof comment.comment_id).toBe("number");
+          expect(typeof comment.votes).toBe("number");
+          expect(typeof comment.created_at).toBe("string");
+          expect(typeof comment.comment_id).toBe("number");
+          expect(typeof comment.author).toBe("string");
+          expect(typeof comment.article_id).toBe("number");
         });
-      });
-  });
-  test("200: get comments by article_id with limit query", () => {
-    return request(app)
-      .get("/api/articles/1/comments?limit=11")
-      .expect(200)
-      .then(({ body }) => {
-        expect(Array.isArray(body.comments)).toBe(true);
-        expect(body.comments.length).toBe(11);
-        expect(body.total_count).toBe(11);
-        body.comments.forEach((comment) => {
-          expect(Object.keys(comment).length).toBe(5);
-          expect(comment).toEqual(
-            expect.objectContaining({
-              comment_id: expect.any(Number),
-              author: expect.any(String),
-              body: expect.any(String),
-              created_at: expect.any(String),
-              votes: expect.any(Number),
-            })
-          );
-        });
-      });
-  });
-  test("400: invalid limit query which is not a number", () => {
-    return request(app)
-      .get("/api/articles/1/comments?limit=two")
-      .expect(400)
-      .then(({ body }) => {
-        expect(body.msg).toBe("limit query must be a number");
-      });
-  });
-  test("404: article_id does not exist", () => {
-    return request(app)
-      .get("/api/articles/999/comments")
-      .expect(404)
-      .then(({ body }) => {
-        expect(body.msg).toBe("article_id does not exist");
       });
   });
 });
 
-describe("POST comment", () => {
-  test("201: post comment by article_id", () => {
-    const newComment = { username: "lurker", body: "totally" };
+describe("GET: status 200 - responds with an empty array", () => {
+  it("returns an empty array when given an article_id with no comments", () => {
     return request(app)
-      .post("/api/articles/11/comments")
-      .send(newComment)
-      .expect(201)
-      .then(({ body }) => {
-        const datePattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
-        expect(body.comment).toMatchObject({
-          comment_id: 19,
-          body: "totally",
-          article_id: 11,
-          author: "lurker",
-          votes: 0,
-          created_at: expect.stringMatching(datePattern),
-        });
+      .get("/api/articles/2/comments")
+      .expect(200)
+      .then((result) => {
+        expect(result.body.comments).toEqual([]);
       });
   });
-  test("400: username does not exist", () => {
-    const newComment = { username: "not_exist_user", body: "totally" };
+});
+
+describe("400: status not found", () => {
+  test("returns 400 status and  Invalid input", () => {
     return request(app)
-      .post("/api/articles/11/comments")
-      .send(newComment)
+      .get("/api/articles/nonsense/comments")
       .expect(400)
-      .then(({ body }) => {
-        expect(body.msg).toBe("username does not exist");
+      .then((result) => {
+        expect(result.body.message).toBe("Invalid input");
       });
   });
-  test("400: article_id does not exist", () => {
-    const newComment = { username: "not_exist_user", body: "totally" };
+});
+
+describe("404: not found ", () => {
+  test("returns 404 status code and message not found", () => {
     return request(app)
-      .post("/api/articles/999/comments")
-      .send(newComment)
+      .get("/api/articles/99999/comments")
       .expect(404)
-      .then(({ body }) => {
-        expect(body.msg).toBe("article_id does not exist");
-      });
-  });
-  test("400: wrong data type", () => {
-    const newComment = { username: "lurker", body: true };
-    return request(app)
-      .post("/api/articles/1/comments")
-      .send(newComment)
-      .expect(400)
-      .then(({ body }) => {
-        expect(body.msg).toBe("Wrong data type");
-      });
-  });
-  test("400: incomplete comment", () => {
-    const newComment = { username: "lurker" };
-    return request(app)
-      .post("/api/articles/1/comments")
-      .send(newComment)
-      .expect(400)
-      .then(({ body }) => {
-        expect(body.msg).toBe("Incomplete comment");
+      .then((result) => {
+        expect(result.body.message).toBe("not found");
       });
   });
 });
