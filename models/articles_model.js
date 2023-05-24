@@ -48,7 +48,8 @@ ORDER BY created_at DESC`,
         });
     });
 };
-exports.addCommentByArticleId = (article_id, commentObj) => {
+
+exports.postCommentModel = (article_id, commentObj) => {
   const { username, body } = commentObj;
 
   if (
@@ -71,12 +72,11 @@ exports.addCommentByArticleId = (article_id, commentObj) => {
     });
 };
 
-exports.updateArticleById = (article_id, patchObj) => {
+exports.patchArticleModel = (article_id, patchObj) => {
   return db
     .query("SELECT * FROM articles WHERE article_id = $1", [article_id])
     .then((result) => {
       if (result.rows.length === 0) {
-        console.log(result.rows, "something?");
         return Promise.reject({
           status: 404,
           message: "not found",
@@ -92,8 +92,8 @@ exports.updateArticleById = (article_id, patchObj) => {
       }
       return db
         .query(
-          `UPDATE articles SET votes = votes + ${patchObj.inc_votes} WHERE article_id = $1 RETURNING *;`,
-          [article_id]
+          `UPDATE articles SET votes = votes + $1 WHERE article_id = $2 RETURNING *;`,
+          [patchObj.inc_votes, article_id]
         )
         .then((result) => {
           return result.rows[0];

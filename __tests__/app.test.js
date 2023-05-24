@@ -36,7 +36,7 @@ describe("GET/api/topics", () => {
       .get("/api/not_an_valid_path")
       .expect(404)
       .then(({ body }) => {
-        expect(body.msg).toBe("Invalid Endpoint");
+        expect(body.message).toBe("Invalid endpoint");
       });
   });
 });
@@ -72,15 +72,6 @@ describe("GET article by id", () => {
         });
       });
   });
-
-  //   test("404: Invalid article_id", () => {
-  //     return request(app)
-  //       .get("/api/articles/999999")
-  //       .expect(400)
-  //       .then(({ body }) => {
-  //         expect(body.msg).toBe("Invalid id");
-  //       });
-  //   });
 });
 
 describe("GET all the articles", () => {
@@ -145,6 +136,68 @@ describe("404: not found ", () => {
       .expect(404)
       .then((result) => {
         expect(result.body.message).toBe("not found");
+      });
+  });
+});
+
+describe(" 201", () => {
+  test("returns a status of 201 and the posted comment", () => {
+    const body = {
+      username: "rogersop",
+      body: "this is really excellent",
+    };
+    return request(app)
+      .post("/api/articles/1/comments")
+      .send(body)
+      .expect(201)
+      .then((result) => {
+        expect(result.body.comment.author).toBe("rogersop");
+        expect(result.body.comment.body).toBe("this is really excellent");
+        expect(result.body.comment.votes).toBe(0);
+        expect(result.body.comment.comment_id).toBe(19);
+        expect(result.body.comment.article_id).toBe(1);
+        expect(typeof result.body.comment.created_at).toBe("string");
+      });
+  });
+  it("returns a status 400 and a message of invalid input if given a nonexistent article_id", () => {
+    const body = {
+      username: "rogersop",
+      body: "this is really excellent",
+    };
+    return request(app)
+      .post("/api/articles/nonsens/comments")
+      .send(body)
+      .expect(400)
+      .then((result) => {
+        expect(result.body.message).toBe("Invalid input");
+      });
+  });
+  it("returns an error if username does not exist", () => {
+    const body = {
+      username: "Henry1996",
+      body: "I am good",
+    };
+    return request(app)
+      .post("/api/articles/1/comments")
+      .send(body)
+      .expect(404)
+      .then((result) => {
+        expect(result.body.message).toBe("not found");
+      });
+  });
+});
+
+describe("patch article", () => {
+  it("returns the article with the votes updated by the patched amount", () => {
+    const body = {
+      inc_votes: 1,
+    };
+    return request(app)
+      .patch("/api/articles/1")
+      .send(body)
+      .expect(200)
+      .then((result) => {
+        expect(result.body.patch.votes).toBe(101);
       });
   });
 });

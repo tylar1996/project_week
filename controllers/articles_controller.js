@@ -2,8 +2,8 @@ const {
   readArticleById,
   readArticles,
   readCommentsByArticleId,
-  addCommentByArticleId,
-  updateArticleById,
+  postCommentModel,
+  patchArticleModel,
 } = require("../models/articles_model");
 
 exports.getArticleById = (req, res, next) => {
@@ -34,26 +34,32 @@ exports.getCommentsByArticleId = (req, res, next) => {
     .catch(next);
 };
 
-exports.postCommentByArticleId = (req, res, next) => {
+exports.postComment = (req, res, next) => {
   article_id = req.params.article_id;
   body = req.body;
-  addCommentByArticleId(article_id, body)
+  postCommentModel(article_id, body)
     .then((comment) => {
       res.status(201).send({
         comment: comment,
       });
     })
     .catch((err) => {
+      console.log(err);
       next(err);
     });
 };
 
-exports.patchArticleById = (req, res, next) => {
-  const { article_id } = req.params;
-  const { inc_votes } = req.body;
-  updateArticleById(article_id, inc_votes)
-    .then((article) => {
-      res.status(200).send({ article });
+exports.patchArticle = (req, res, next) => {
+  article_id = req.params.article_id;
+  body = req.body;
+  patchArticleModel(article_id, body)
+    .then((patch) => {
+      res.status(200).send({
+        patch: patch,
+      });
     })
-    .catch(next);
+    .catch((err) => {
+      // console.log(err)
+      next(err);
+    });
 };
